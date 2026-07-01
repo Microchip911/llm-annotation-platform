@@ -61,5 +61,5 @@ def read_me(current_user: CurrentUser) -> User:
 
 @router.get("/users", response_model=list[UserOut])
 def list_users(db: DbSession, _admin: AdminUser) -> list[User]:
-    """List all users. Admin-only — the platform's oversight view."""
+    """List all users. Admin-only, the platform's oversight view."""
     return db.query(User).order_by(User.id).all()

@@ -12,7 +12,7 @@ import tempfile
 
 # --- Must run before any `app.*` import so settings pick these up -----------
 # We *force* these (not setdefault): if the surrounding shell/CI already exported
-# DATABASE_URL, deferring to it would run — and drop_all — against a real
+# DATABASE_URL, deferring to it would run (and drop_all) against a real
 # database while still looking green. The test DB must be non-negotiable.
 _tmp_db = tempfile.NamedTemporaryFile(suffix=".db", delete=False)
 _tmp_db.close()
@@ -69,7 +69,7 @@ def auth_headers(client, email="annotator@example.com", password="password123"):
 
 
 def seed_user(email, password, role=models.Role.ANNOTATOR):
-    """Create a user directly in the DB — the trusted path for provisioning admins.
+    """Create a user directly in the DB: the trusted path for provisioning admins.
 
     Admins are intentionally *not* creatable through the public API, so tests
     that need one insert it here rather than self-registering as admin.

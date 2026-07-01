@@ -86,5 +86,5 @@ def ui_trailing_slash() -> RedirectResponse:
 # `html=True` serves index.html at /ui/ and its co-located assets at /ui/app.css and
 # /ui/app.js. index.html links those assets with RELATIVE paths, so the page renders
 # correctly both when served here and when the file is opened directly in an editor
-# preview — it never appears unstyled.
+# preview. It never appears unstyled.
 app.mount("/ui", StaticFiles(directory=_UI_DIR, html=True), name="ui")

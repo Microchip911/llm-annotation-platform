@@ -1,7 +1,7 @@
 """Authentication and JWT-handling tests.
 
-The prototype's suite asserted only ``status_code != 401`` — a bar that a 404,
-422, or even a 500 clears — so it validated nothing. These tests assert exact
+The prototype's suite asserted only ``status_code != 401``, a bar that a 404,
+422, or even a 500 clears, so it validated nothing. These tests assert exact
 status codes and cover the token lifecycle: valid, expired, and tampered, plus
 registration and login.
 """

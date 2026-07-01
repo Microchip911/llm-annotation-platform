@@ -1,6 +1,6 @@
 # LLM Annotation Platform
 
-> A FastAPI backend for collecting and reporting **human quality ratings on LLM outputs** — the data-collection layer behind RLHF, model evaluation, and hallucination detection.
+> A FastAPI backend for collecting and reporting **human quality ratings on LLM outputs**: the data-collection layer behind RLHF, model evaluation, and hallucination detection.
 
 ![CI](https://github.com/Microchip911/llm-annotation-platform/actions/workflows/ci.yml/badge.svg)
 ![Python](https://img.shields.io/badge/python-3.11%20|%203.12%20|%203.13-blue)
@@ -11,7 +11,7 @@
 
 ## 🧭 The bigger picture
 
-This ships as an API for scoring LLM outputs — but the engine underneath is more
+This ships as an API for scoring LLM outputs, but the engine underneath is more
 general: **an always-on checkpoint that runs an AI's proposal past an accountable
 human before any decision is committed, then records who decided, what, and why.**
 The same loop that scores LLM outputs for RLHF is, unchanged, a governance control
@@ -20,7 +20,7 @@ sign-off in a hospital.
 
 > AI proposes → an authenticated human rules → the verdict is recorded, attributed, and reported.
 
-**→ Read the full story in [VISION.md](VISION.md)** — the algorithm-vs-AI rationale,
+**→ Read the full story in [VISION.md](VISION.md).** It covers the algorithm-vs-AI rationale,
 the two-layer "Swiss-cheese" accountability model, and worked use cases in
 project/program/portfolio governance and healthcare.
 
@@ -33,13 +33,13 @@ outputs into **structured, attributable human judgments**. This service is that
 layer. Human reviewers ("annotators") authenticate, then submit a judgment on a
 single model output:
 
-- a **1–5 quality score**,
-- a categorical **label** — `hallucination`, `correct`, or `partial`,
+- a **1 to 5 quality score**,
+- a categorical **label** (`hallucination`, `correct`, or `partial`),
 - optional free-text **notes**,
 - all scoped to an **evaluation project** (`project_id`).
 
 Every judgment is attributed to the reviewer who made it, and a reporting endpoint
-aggregates review volume, per-label breakdowns, and mean score — the raw material
+aggregates review volume, per-label breakdowns, and mean score: the raw material
 for metrics like *hallucination rate per model version*.
 
 In short: it is the ingestion and storage backbone of a human-in-the-loop LLM
@@ -60,10 +60,10 @@ credible next steps toward a full platform.
 
 | Use case | How this service supports it |
 | --- | --- |
-| **RLHF preference-data collection** | Annotators score completions 1–5 to build the reward-model / preference dataset, with every rating attributed to a reviewer and project for auditability. |
+| **RLHF preference-data collection** | Annotators score completions 1 to 5 to build the reward-model / preference dataset, with every rating attributed to a reviewer and project for auditability. |
 | **Hallucination detection & tracking** | Reviewers apply the `hallucination` / `correct` / `partial` label; the summary report is the foundation for computing hallucination rates per model or prompt category. |
 | **Model-version eval & regression benchmarking** | Scope annotations to a `project_id` to gather human scores for a fixed eval set against each checkpoint and compare quality across releases. |
-| **Data-labeling vendor workflows** | JWT auth + roles let a vendor onboard a pool of annotators, attribute each judgment to its reviewer, and report throughput — the accountability layer needed to audit label quality. |
+| **Data-labeling vendor workflows** | JWT auth + roles let a vendor onboard a pool of annotators, attribute each judgment to its reviewer, and report throughput, giving the accountability layer needed to audit label quality. |
 | **Red-team & safety incident logging** | Trust-and-safety reviewers record structured verdicts (score + label + notes) on unsafe outputs, producing a searchable, authenticated log to feed safety fine-tuning. |
 | **Human-QA gate for production LLM features** | Route sampled outputs through the API for human sign-off before promoting a model or prompt change, using the summary report to confirm a quality bar was met. |
 
@@ -71,14 +71,14 @@ credible next steps toward a full platform.
 
 ## Features
 
-- 🖥️ **Reviewer UI** — a zero-dependency single-page console at `/ui` to work the loop live: grade a sample AI draft (score + label + notes) and watch it land in the real, attributed decision ledger. Keyboard-first, accessible, dark theme.
-- 🔐 **JWT authentication** — register, log in for a bearer token, hit protected routes. Passwords stored as bcrypt hashes, never plaintext.
-- 👤 **Role-based access** — `annotator` vs `admin`; annotators are scoped to their own data. The role is **not** client-settable: self-registration is always an annotator, and admins are provisioned out-of-band (DB seed / CLI).
-- 📝 **Annotation CRUD** — create, read, list (paginated + filterable), delete, with per-owner authorization.
-- 📊 **Aggregate reporting** — total volume, per-label breakdown, and average score.
-- 🛡️ **Defense in depth** — Pydantic validation at the edge *and* `CHECK` constraints in the database.
-- 🧪 **Real test suite** — isolated per-test database, exact status-code assertions, auth/authz/round-trip coverage.
-- ⚙️ **CI/CD** — lint (ruff) + tests across Python 3.11–3.13, plus a CodeQL security scan.
+- 🖥️ **Reviewer UI**: a zero-dependency single-page console at `/ui` to work the loop live: grade a sample AI draft (score + label + notes) and watch it land in the real, attributed decision ledger. Keyboard-first, accessible, dark theme.
+- 🔐 **JWT authentication**: register, log in for a bearer token, hit protected routes. Passwords stored as bcrypt hashes, never plaintext.
+- 👤 **Role-based access**: `annotator` vs `admin`; annotators are scoped to their own data. The role is **not** client-settable: self-registration is always an annotator, and admins are provisioned out-of-band (DB seed / CLI).
+- 📝 **Annotation CRUD**: create, read, list (paginated + filterable), delete, with per-owner authorization.
+- 📊 **Aggregate reporting**: total volume, per-label breakdown, and average score.
+- 🛡️ **Defense in depth**: Pydantic validation at the edge *and* `CHECK` constraints in the database.
+- 🧪 **Real test suite**: isolated per-test database, exact status-code assertions, auth/authz/round-trip coverage.
+- ⚙️ **CI/CD**: lint (ruff) + tests across Python 3.11 to 3.13, plus a CodeQL security scan.
 
 ---
 
@@ -124,7 +124,7 @@ Layout:
 ```
 app/
 ├── main.py           # app factory, router wiring, lifespan (schema create), CORS, /health
-├── config.py         # pydantic-settings — all config from env / .env
+├── config.py         # pydantic-settings: all config from env / .env
 ├── database.py       # sync engine, SessionLocal, get_db dependency, Base
 ├── models.py         # SQLAlchemy 2.0 models: User, Annotation (+ Role/Label enums, CHECK constraints)
 ├── schemas.py        # Pydantic request/response contracts
@@ -134,7 +134,7 @@ app/
 │   ├── auth.py         # POST /auth/register, POST /auth/token, GET /auth/me
 │   ├── annotations.py  # POST/GET/DELETE /annotations, GET /annotations (list)
 │   └── reports.py      # GET /reports/summary
-└── static/ui/         # Reviewer UI — index.html + app.css + app.js, served at /ui
+└── static/ui/         # Reviewer UI: index.html + app.css + app.js, served at /ui
 tests/                 # conftest (isolated DB) + auth/annotation/report/ui tests
 ```
 
@@ -166,18 +166,18 @@ uvicorn app.main:app --reload
 
 Then open:
 
-- the **Reviewer UI** at **http://127.0.0.1:8000/ui** (the site root redirects there) — a single-page console to work the loop live, and
-- the interactive **API docs** at **http://127.0.0.1:8000/docs** (Swagger UI — the "Authorize" button works: register, log in, paste the token, try every endpoint).
+- the **Reviewer UI** at **http://127.0.0.1:8000/ui** (the site root redirects there), a single-page console to work the loop live, and
+- the interactive **API docs** at **http://127.0.0.1:8000/docs** (Swagger UI, where the "Authorize" button works: register, log in, paste the token, try every endpoint).
 
 [![The Reviewer Desk UI](docs/reviewer-desk.png)](docs/reviewer-desk.png)
 
 *The Reviewer Desk: grade a sample AI draft on the left; the real, attributed decision ledger and live summary update on the right. Drafts are client-side sample data; every verdict is a real API call.*
 
-> **▶️ View the UI — run it, don't open the file.** The UI is served *by* the app and talks to the API, so it only works through the running server. From the project root:
+> **▶️ View the UI: run it, don't open the file.** The UI is served *by* the app and talks to the API, so it only works through the running server. From the project root, with the virtualenv active (`source .venv/bin/activate`):
 > ```bash
 > SECRET_KEY=dev-secret uvicorn app.main:app --reload
 > ```
-> then open **http://127.0.0.1:8000/ui** in your browser. (Opening `index.html` on its own just shows an inert page — there's no backend behind it.)
+> then open **http://127.0.0.1:8000/ui** in your browser. (Opening `index.html` on its own just shows an inert page; there's no backend behind it. If `uvicorn` reports `No module named 'bcrypt'`, your virtualenv isn't active: run `source .venv/bin/activate` first, or call `.venv/bin/uvicorn` directly.)
 
 Run the tests / linter:
 
@@ -208,8 +208,8 @@ dev-friendly; override anything sensitive in production. See [`.env.example`](.e
 
 | Method | Path | Auth | Description |
 | --- | --- | --- | --- |
-| `POST` | `/auth/register` | — | Create a reviewer account (always an `annotator`). |
-| `POST` | `/auth/token` | — | Exchange email + password for a JWT. |
+| `POST` | `/auth/register` | none | Create a reviewer account (always an `annotator`). |
+| `POST` | `/auth/token` | none | Exchange email + password for a JWT. |
 | `GET` | `/auth/me` | ✅ | Current authenticated user. |
 | `GET` | `/auth/users` | 🔑 admin | List all users (oversight view). |
 | `POST` | `/annotations/` | ✅ | Submit an annotation (attributed to you). |
@@ -217,8 +217,8 @@ dev-friendly; override anything sensitive in production. See [`.env.example`](.e
 | `GET` | `/annotations/{id}` | ✅ | Fetch one annotation you own. |
 | `DELETE` | `/annotations/{id}` | ✅ | Delete one annotation you own. |
 | `GET` | `/reports/summary` | ✅ | Aggregate stats scoped to you (all data for admins). |
-| `GET` | `/ui` | — | Reviewer UI (single-page console; `/` redirects here). |
-| `GET` | `/health` | — | Liveness probe. |
+| `GET` | `/ui` | none | Reviewer UI (single-page console; `/` redirects here). |
+| `GET` | `/health` | none | Liveness probe. |
 
 ### Example session
 
@@ -267,9 +267,9 @@ sequenceDiagram
     P-->>C: 200 (only the caller's rows)
 ```
 
-- **Authentication** — bearer JWTs signed with `HS256`; the algorithm list is pinned on decode to prevent `alg=none` / algorithm-confusion attacks, and expiry is always enforced.
-- **Authorization** — annotators only see and mutate their **own** annotations; admins see all. Non-owner reads return **404 (not 403)** so the API never leaks the existence of another reviewer's data.
-- **Role provisioning** — registration always creates an `annotator`; `role` is never accepted from the client. Admin accounts are seeded out-of-band, closing the "self-service admin" escalation.
+- **Authentication**: bearer JWTs signed with `HS256`; the algorithm list is pinned on decode to prevent `alg=none` / algorithm-confusion attacks, and expiry is always enforced.
+- **Authorization**: annotators only see and mutate their **own** annotations; admins see all. Non-owner reads return **404 (not 403)** so the API never leaks the existence of another reviewer's data.
+- **Role provisioning**: registration always creates an `annotator`; `role` is never accepted from the client. Admin accounts are seeded out-of-band, closing the "self-service admin" escalation.
 
 ---
 

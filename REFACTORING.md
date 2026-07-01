@@ -1,11 +1,11 @@
-# Refactoring notes — from prototype to production shape
+# Refactoring notes: from prototype to production shape
 
 This document is the engineering narrative behind the first two commits:
 
-1. **`Initial prototype`** — the original service, with editor auto-generated
+1. **`Initial prototype`**, the original service, with editor auto-generated
    filenames normalized to their intended module names but the code otherwise
    untouched.
-2. **`Production-ready rebuild`** — the refactor described below.
+2. **`Production-ready rebuild`**, the refactor described below.
 
 To see the change as code, read the diff between those two commits. This file
 explains the *why*. I've written it the way I'd walk a teammate through a review:
@@ -16,7 +16,7 @@ lead with what would page us at 3am, then work down to polish.
 ## The one-paragraph summary
 
 The prototype couldn't start. It imported a `models` module that didn't exist,
-and it drove an **async** database engine with the **synchronous** ORM API —
+and it drove an **async** database engine with the **synchronous** ORM API,
 two independent showstoppers. Underneath those, the security and correctness
 story had holes: a hardcoded JWT secret, no login endpoint despite advertising
 one, every annotation attributed to `user_id=1`, a reporting router that was
@@ -45,7 +45,7 @@ it with a test suite and CI that actually run.
 ### 1a. `models.py` never existed
 
 Three modules did `from models import Annotation`, but there was no `models`
-module anywhere — `schemas.py` only defined *Pydantic* models, which are
+module anywhere. `schemas.py` only defined *Pydantic* models, which are
 validation contracts, not ORM tables. So the very first import crashed and the
 app never constructed.
 
@@ -70,7 +70,7 @@ class Annotation(Base):
 every router called it synchronously:
 
 ```python
-# before — this cannot work
+# before: this cannot work
 engine = create_async_engine(DATABASE_URL, echo=True)   # async engine
 ...
 db.add(annotation); db.commit(); db.refresh(annotation) # sync API, no await
@@ -78,23 +78,23 @@ db.query(Annotation).filter(...).first()                # AsyncSession has no .q
 ```
 
 `AsyncSession` has no `.query()`, and `.commit()`/`.refresh()` are coroutines
-that must be awaited — un-awaited, every write silently no-ops. On top of that,
+that must be awaited; un-awaited, every write silently no-ops. On top of that,
 `main.py` called `Base.metadata.create_all(bind=engine)` **at import time**
 against the async engine, which raises.
 
 **Decision: go fully synchronous.** The routers already spoke the sync API, the
 workload is human-paced (annotators click at human speed, not machine speed), and
 sync + FastAPI's threadpool is the simpler, correct thing to demonstrate. The
-alternative — rewriting every handler to `await db.execute(select(...))` with an
-async test harness — buys concurrency this app will never need. So
+alternative, rewriting every handler to `await db.execute(select(...))` with an
+async test harness, buys concurrency this app will never need. So
 [`app/database.py`](app/database.py) is a plain `create_engine` + `sessionmaker`
 + a `get_db` dependency that yields and closes a `Session`. (If we later needed
-async, the rule still holds: pick one stack and keep it consistent everywhere —
+async, the rule still holds: pick one stack and keep it consistent everywhere,
 never mix.)
 
 `create_all` also moved out of import time into a **lifespan** handler in
 [`app/main.py`](app/main.py), so it runs once, at startup, after the models are
-registered — and doesn't touch a database just because someone imported the app.
+registered, and doesn't touch a database just because someone imported the app.
 
 ---
 
@@ -105,7 +105,7 @@ registered — and doesn't touch a database just because someone imported the ap
 `SECRET_KEY = "your-secret"` sat in source. Anyone with the repo could forge
 tokens. Config now lives in [`app/config.py`](app/config.py) via
 `pydantic-settings`, read from the environment. If `SECRET_KEY` is unset, we mint
-a **strong ephemeral key** at boot rather than falling back to a weak default —
+a **strong ephemeral key** at boot rather than falling back to a weak default;
 the demo still runs `git clone && uvicorn`, but no shared secret is ever
 committed. (Any deployment sets a stable `SECRET_KEY`; the app logs a warning
 when it doesn't.) Treat the original `"your-secret"` as compromised.
@@ -151,14 +151,14 @@ if annotation is None or (current_user.role != Role.ADMIN and annotation.user_id
 
 ### 2e. Roles are server-controlled, not client-settable
 
-The `admin` role is the only thing that bypasses ownership scoping — so where an
+The `admin` role is the only thing that bypasses ownership scoping, so where an
 account's role comes from *is* the security boundary. Registration therefore
 accepts only `email` + `password`; there is no `role` field on `UserCreate`, and
 `register()` always creates an annotator. Admins are provisioned out-of-band (a
 DB seed / CLI step), and the previously-unused `require_admin` dependency now
 guards a real admin-only endpoint (`GET /auth/users`). A regression test asserts
 that a request smuggling `{"role": "admin"}` still yields an annotator. (Letting
-the client pick its own role would turn "admin" into open self-service — the kind
+the client pick its own role would turn "admin" into open self-service, the kind
 of privilege-escalation bug that's easy to write and easy to miss.)
 
 ---
@@ -181,7 +181,7 @@ of privilege-escalation bug that's easy to write and easy to miss.)
 
 ## 4. Data integrity
 
-`label` was a free-text `str` — nothing stopped `"banna"` or `"HALUCINATION"`
+`label` was a free-text `str`, and nothing stopped `"banna"` or `"HALUCINATION"`
 from poisoning the eval data. It's now a `Label` enum validated by Pydantic at
 the edge, **and** mirrored by database `CHECK` constraints for defense in depth
 (so a bad row can't sneak in via a migration or a direct write):
@@ -194,7 +194,7 @@ __table_args__ = (
 ```
 
 I also added a paginated, filterable `GET /annotations` list endpoint (there was
-no way to list before) with a server-capped `limit` — an unbounded list endpoint
+no way to list before) with a server-capped `limit`, because an unbounded list endpoint
 is a latent denial-of-service.
 
 ---
@@ -212,7 +212,7 @@ single source of truth for each concern.
 
 ## 6. Configuration
 
-Everything tunable — secret, token lifetime, database URL, SQL echo, CORS — is a
+Everything tunable (secret, token lifetime, database URL, SQL echo, CORS) is a
 typed field on `Settings`, documented in [`.env.example`](.env.example). No magic
 constants scattered through the code, and one obvious place to look when
 something needs changing per environment.
@@ -222,13 +222,13 @@ something needs changing per environment.
 ## 7. Tests
 
 The original suite asserted `response.status_code != 401`. A 404, a 422, even a
-500 all satisfy that — and since the app couldn't import, the tests would have
+500 all satisfy that, and since the app couldn't import, the tests would have
 errored at collection anyway. It validated nothing.
 
 The rewritten suite ([`tests/`](tests/)) runs against the real stack on an
 isolated, per-test SQLite database with a fixed test secret, and asserts **exact**
 status codes. It covers the token lifecycle (valid/expired/tampered/unknown-user),
-a create→read round-trip, `422` validation, and — importantly — the
+a create→read round-trip, `422` validation, and, importantly, the
 ownership/IDOR scoping, which is exactly the kind of authorization logic that
 breaks silently without a test.
 
@@ -242,7 +242,7 @@ Snyk step gated on a `SNYK_TOKEN` a fork/public repo won't have, pinned deprecat
 action majors, and never installed dependencies or ran the tests.
 
 The new [`ci.yml`](.github/workflows/ci.yml) has two jobs: a **lint + test matrix**
-across Python 3.11–3.13 that actually installs deps and runs `ruff` + `pytest`,
+across Python 3.11 to 3.13 that actually installs deps and runs `ruff` + `pytest`,
 and a **CodeQL** job done correctly (`init` → `analyze`, pinned to v3). It keeps
 the original's security intent while being a pipeline that can go green.
 
@@ -253,14 +253,14 @@ the original's security intent while being a pipeline that can go green.
 Good engineering is as much about scope discipline as feature count. I left these
 out on purpose, and listed them in the README roadmap instead:
 
-- **Alembic migrations / Postgres** — `create_all` is fine for a two-table
+- **Alembic migrations / Postgres.** `create_all` is fine for a two-table
   reference app; Alembic is the right call the moment the schema is real and
   shared, but it's boilerplate that would distract here.
-- **A separate CRUD/service layer** — with two models, routers querying directly
+- **A separate CRUD/service layer.** With two models, routers querying directly
   is more readable than an extra layer of indirection. I'd introduce one as the
   domain logic grows.
-- **Docker / rate limiting / tracing** — production concerns worth naming, not
+- **Docker / rate limiting / tracing.** These are production concerns worth naming, not
   worth simulating in a portfolio-scale reference.
 
 The goal was a service that is *correct, secure, tested, and honest about its
-scope* — not one that cosplays as a platform it isn't.
+scope*, not one that cosplays as a platform it isn't.

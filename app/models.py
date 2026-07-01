@@ -1,6 +1,6 @@
 """SQLAlchemy ORM models.
 
-This is the module the original prototype was missing entirely — every router
+This is the module the original prototype was missing entirely. Every router
 did ``from models import Annotation`` against a file that did not exist, so the
 app could never import. Models use SQLAlchemy 2.0's typed ``Mapped`` /
 ``mapped_column`` style, and enforce value constraints at the database layer

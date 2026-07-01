@@ -1,9 +1,9 @@
 /* ============================================================
-   Reviewer Desk — vanilla JS, no framework, no build step.
+   Reviewer Desk: vanilla JS, no framework, no build step.
    Security posture: ALL server / LLM / user text is inserted via
    textContent (never innerHTML), so no draft or note can inject
    markup. The token is kept in a module-scoped variable mirrored
-   to sessionStorage — most XSS-resilient practical option here,
+   to sessionStorage, the most XSS-resilient practical option here,
    given zero third-party JS and textContent-only rendering. No
    secret ever ships to the client.
    ============================================================ */
@@ -64,7 +64,7 @@
     try {
       res = await fetch(path, { method, headers, body });
     } catch (_e) {
-      throw new ApiError("Network error — is the server running?", 0);
+      throw new ApiError("Network error. Is the server running?", 0);
     }
 
     if (res.status === 401 && auth) authExpired();
@@ -156,7 +156,7 @@
       user = await api("/auth/me");
       enterDesk();
     } catch (err) {
-      if (err.status === 409) { showAuthError("That email is already registered — try signing in."); setAuthMode("login"); }
+      if (err.status === 409) { showAuthError("That email is already registered. Try signing in."); setAuthMode("login"); }
       else if (err.status === 401) showAuthError("Incorrect email or password.");
       else showAuthError(err.message);
     } finally {
@@ -345,8 +345,8 @@
   function renderSummary(s) {
     const total = s.total_annotations || 0;
     const byLabel = s.by_label || { hallucination: 0, partial: 0, correct: 0 };
-    const avg = s.average_score == null ? "—" : Number(s.average_score).toFixed(2);
-    const hallucRate = total ? Math.round((100 * (byLabel.hallucination || 0)) / total) + "%" : "—";
+    const avg = s.average_score == null ? "-" : Number(s.average_score).toFixed(2);
+    const hallucRate = total ? Math.round((100 * (byLabel.hallucination || 0)) / total) + "%" : "-";
 
     const box = $("summary");
     box.replaceChildren();
@@ -399,7 +399,7 @@
     const box = $("ledger");
     box.replaceChildren();
     if (!rows || rows.length === 0) {
-      box.appendChild(el("p", "empty", filterLabel ? "No " + filterLabel + " decisions yet." : "No decisions yet — submit your first verdict."));
+      box.appendChild(el("p", "empty", filterLabel ? "No " + filterLabel + " decisions yet." : "No decisions yet. Submit your first verdict."));
       return;
     }
     for (const r of rows) box.appendChild(ledgerRow(r));

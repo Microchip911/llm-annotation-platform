@@ -3,7 +3,7 @@
 This router existed in the prototype but was never wired into the app, so
 ``GET /reports/summary`` was a dead route. It is now registered in ``main.py``
 and returns a real aggregate: total volume, a per-label breakdown, and the mean
-score — the raw material for metrics like hallucination rate.
+score: the raw material for metrics like hallucination rate.
 """
 
 from fastapi import APIRouter

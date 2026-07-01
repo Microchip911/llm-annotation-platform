@@ -1,4 +1,4 @@
-"""Pydantic v2 request/response schemas — the API's public data contract.
+"""Pydantic v2 request/response schemas: the API's public data contract.
 
 These are deliberately separate from the ORM models: the ORM describes how data
 is *stored*, these describe what the API *accepts and returns*. Keeping them
@@ -18,7 +18,7 @@ class UserCreate(BaseModel):
 
     Note there is deliberately no ``role`` field: self-registration always
     yields an annotator. Privileged accounts are provisioned out-of-band (a DB
-    seed / CLI step), never by a client choosing their own role — otherwise
+    seed / CLI step), never by a client choosing their own role; otherwise
     anyone could mint an admin and bypass every ownership scope.
     """
 
@@ -27,7 +27,7 @@ class UserCreate(BaseModel):
 
 
 class UserOut(BaseModel):
-    """Public representation of a user — note the absence of any password."""
+    """Public representation of a user (note the absence of any password)."""
 
     model_config = ConfigDict(from_attributes=True)
 

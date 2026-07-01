@@ -1,6 +1,6 @@
 """Reusable FastAPI dependencies: DB session, current user, and role guards.
 
-Centralising these here keeps the routers declarative — a handler simply asks
+Centralising these here keeps the routers declarative: a handler simply asks
 for a ``CurrentUser`` and trusts that a valid, authenticated ``User`` row has
 already been resolved (or a 401 raised).
 """

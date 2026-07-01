@@ -3,7 +3,7 @@
 All runtime settings are read from environment variables (or a local ``.env``
 file) via ``pydantic-settings``. Every value has a development-friendly default
 so the service boots with ``git clone && uvicorn app.main:app`` out of the box,
-yet anything security-sensitive can — and in production MUST — be overridden.
+yet anything security-sensitive can (and in production MUST) be overridden.
 """
 
 import secrets
@@ -36,7 +36,7 @@ class Settings(BaseSettings):
     def _ensure_secret_key(self) -> "Settings":
         # Treat an empty / whitespace-only value exactly like an unset one. A
         # present-but-blank env var (e.g. a copied ``.env`` with ``SECRET_KEY=``)
-        # would otherwise sign every JWT with "" — trivially forgeable.
+        # would otherwise sign every JWT with "", which is trivially forgeable.
         if not self.secret_key.strip():
             self.secret_key = secrets.token_urlsafe(48)
             self.secret_key_is_ephemeral = True

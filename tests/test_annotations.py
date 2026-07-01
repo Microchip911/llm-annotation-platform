@@ -54,7 +54,7 @@ def test_annotations_are_scoped_to_their_owner(client):
 
     created = client.post("/annotations/", json=_sample(), headers=alice).json()
 
-    # Bob cannot see Alice's annotation (404, not 403 — no existence leak).
+    # Bob cannot see Alice's annotation (404, not 403; no existence leak).
     assert client.get(f"/annotations/{created['id']}", headers=bob).status_code == 404
     # ...nor does it appear in his list, while it does appear in hers.
     assert client.get("/annotations/", headers=bob).json() == []
