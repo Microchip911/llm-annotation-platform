@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Reviewer Desk — LLM Annotation Platform</title>
+  <meta name="description" content="A human-in-the-loop reviewer console: score and label an AI draft, then watch it land in the live decision ledger." />
+  <link rel="stylesheet" href="/ui/static/app.css" />
+  <script defer src="/ui/static/app.js"></script>
+</head>
+<body>
+  <a class="skip-link" id="skipLink" href="#gate">Skip to content</a>
+
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-mark">Reviewer Desk</span>
+      <span class="brand-sub">human-in-the-loop oversight ledger</span>
+    </div>
+    <div class="legend" aria-label="Data provenance key">
+      <span class="legend-item"><span class="swatch swatch-sample" aria-hidden="true"></span>SAMPLE</span>
+      <span class="legend-item"><span class="swatch swatch-live" aria-hidden="true"></span>LIVE</span>
+      <span class="legend-key">drafts are sample · everything else is the real API</span>
+    </div>
+    <div class="identity" id="identity" hidden>
+      <span class="identity-email" id="userEmail"></span>
+      <span class="pill" id="userRole"></span>
+      <button type="button" class="btn btn-ghost" id="signOutBtn">Sign out</button>
+    </div>
+  </header>
+
+  <!-- ============================ AUTH GATE ============================ -->
+  <main id="gate" class="gate" tabindex="-1">
+    <section class="authcard" aria-labelledby="authTitle">
+      <h1 class="authcard-title" id="authTitle">Sign in to the desk</h1>
+      <p class="authcard-lead">Review AI drafts and record accountable, attributed verdicts.</p>
+
+      <div class="tabs" role="tablist" aria-label="Sign in or register">
+        <button type="button" class="tab is-active" id="tabLogin" role="tab" aria-selected="true" data-mode="login">Sign in</button>
+        <button type="button" class="tab" id="tabRegister" role="tab" aria-selected="false" data-mode="register">Register</button>
+      </div>
+
+      <form id="authForm" novalidate>
+        <label class="field">
+          <span class="field-label">Email</span>
+          <input type="email" id="authEmail" name="email" autocomplete="email" required placeholder="reviewer@example.com" />
+        </label>
+        <label class="field">
+          <span class="field-label">Password</span>
+          <input type="password" id="authPassword" name="password" autocomplete="current-password" required minlength="8" placeholder="at least 8 characters" />
+        </label>
+        <p class="form-error" id="authError" role="alert" hidden></p>
+        <button type="submit" class="btn btn-primary btn-block" id="authSubmit">Sign in</button>
+      </form>
+      <p class="authcard-foot">No account is created until you register. Passwords are hashed server-side (bcrypt).</p>
+    </section>
+  </main>
+
+  <!-- ============================ WORKSPACE ============================ -->
+  <main id="desk" class="desk" tabindex="-1" hidden>
+    <!-- LEFT: the act -->
+    <div class="col col-act">
+      <!-- ① Draft under review -->
+      <section class="panel" aria-labelledby="draftHeading">
+        <div class="region-head">
+          <span class="region-num" aria-hidden="true">1</span>
+          <h2 class="region-title" id="draftHeading">The AI draft <span class="tag tag-sample">SAMPLE</span></h2>
+          <span class="queue-progress" id="queueProgress"></span>
+        </div>
+
+        <article class="draftcard" id="draftCard">
+          <div class="sample-ribbon" aria-label="Sample data: client-side demo, the backend has no pending-item queue">
+            SAMPLE DATA — client-side demo (the backend has no pending-item queue)
+          </div>
+          <div class="draft-meta">
+            <span class="pill pill-muted" id="draftProject"></span>
+          </div>
+          <p class="draft-prompt" id="draftPrompt"></p>
+          <pre class="draft-output" id="draftOutput" tabindex="0"></pre>
+        </article>
+
+        <div class="queue-done" id="queueDone" hidden>
+          <p>You have reviewed all sample drafts. The ledger on the right is your real, stored work.</p>
+          <button type="button" class="btn btn-secondary" id="restartQueueBtn">Restart sample queue</button>
+        </div>
+
+        <p class="connective">
+          The draft above is <strong>sample data</strong>. Your verdict below is submitted to the
+          <strong>real API</strong> and stored in the live ledger.
+        </p>
+      </section>
+
+      <!-- ② Your verdict -->
+      <section class="panel" id="verdictPanel" aria-labelledby="verdictHeading">
+        <div class="region-head">
+          <span class="region-num" aria-hidden="true">2</span>
+          <h2 class="region-title" id="verdictHeading">Your verdict <span class="tag tag-live">LIVE</span></h2>
+        </div>
+
+        <form id="verdictForm">
+          <fieldset class="picker">
+            <legend class="picker-legend">Quality score</legend>
+            <div class="radiogroup scoregroup" id="scoreGroup" role="radiogroup" aria-label="Quality score, 1 worst to 5 best">
+              <button type="button" class="scorebtn" role="radio" aria-checked="false" data-score="1"><span class="score-n">1</span><span class="score-cap">Very poor</span></button>
+              <button type="button" class="scorebtn" role="radio" aria-checked="false" data-score="2"><span class="score-n">2</span><span class="score-cap">Poor</span></button>
+              <button type="button" class="scorebtn" role="radio" aria-checked="false" data-score="3"><span class="score-n">3</span><span class="score-cap">Fair</span></button>
+              <button type="button" class="scorebtn" role="radio" aria-checked="false" data-score="4"><span class="score-n">4</span><span class="score-cap">Good</span></button>
+              <button type="button" class="scorebtn" role="radio" aria-checked="false" data-score="5"><span class="score-n">5</span><span class="score-cap">Excellent</span></button>
+            </div>
+          </fieldset>
+
+          <fieldset class="picker">
+            <legend class="picker-legend">Label</legend>
+            <div class="radiogroup labelgroup" id="labelGroup" role="radiogroup" aria-label="Verdict label">
+              <button type="button" class="labelbtn label-hallucination" role="radio" aria-checked="false" data-label="hallucination">Hallucination</button>
+              <button type="button" class="labelbtn label-partial" role="radio" aria-checked="false" data-label="partial">Partial</button>
+              <button type="button" class="labelbtn label-correct" role="radio" aria-checked="false" data-label="correct">Correct</button>
+            </div>
+          </fieldset>
+
+          <label class="field">
+            <span class="field-label">Notes <span class="field-hint">(optional)</span></span>
+            <textarea id="notes" name="notes" rows="2" maxlength="2000" placeholder="Why this score and label?" aria-describedby="notesCount"></textarea>
+            <span class="counter" id="notesCount">0 / 2000</span>
+          </label>
+
+          <div class="verdict-actions">
+            <button type="submit" class="btn btn-primary" id="submitBtn" disabled>Submit verdict</button>
+            <button type="button" class="btn btn-ghost" id="skipBtn">Skip draft</button>
+          </div>
+          <p class="kbd-hint" aria-hidden="true"><kbd>1</kbd>–<kbd>5</kbd> score · <kbd>H</kbd>/<kbd>P</kbd>/<kbd>C</kbd> label · <kbd>Enter</kbd> submit · <kbd>S</kbd> skip</p>
+        </form>
+      </section>
+    </div>
+
+    <!-- RIGHT: the record -->
+    <div class="col col-record">
+      <!-- ③ Summary -->
+      <section class="panel" aria-labelledby="summaryHeading">
+        <div class="region-head">
+          <span class="region-num" aria-hidden="true">3</span>
+          <h2 class="region-title" id="summaryHeading">Summary <span class="tag tag-live">LIVE</span></h2>
+        </div>
+        <div class="summary" id="summary" aria-busy="true">
+          <div class="skeleton skeleton-summary"></div>
+        </div>
+      </section>
+
+      <!-- ③ Ledger -->
+      <section class="panel panel-grow" aria-labelledby="ledgerHeading">
+        <div class="region-head">
+          <h2 class="region-title" id="ledgerHeading">Recent decisions <span class="tag tag-live">LIVE</span></h2>
+        </div>
+        <div class="filterow" id="filterRow" role="group" aria-label="Filter decisions by label">
+          <button type="button" class="chip is-active" data-filter="" aria-pressed="true">All</button>
+          <button type="button" class="chip" data-filter="hallucination" aria-pressed="false">Hallucination</button>
+          <button type="button" class="chip" data-filter="partial" aria-pressed="false">Partial</button>
+          <button type="button" class="chip" data-filter="correct" aria-pressed="false">Correct</button>
+        </div>
+        <div class="ledger" id="ledger" aria-busy="true" aria-label="Decision ledger">
+          <div class="skeleton skeleton-row"></div>
+          <div class="skeleton skeleton-row"></div>
+          <div class="skeleton skeleton-row"></div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <span>Reviewer Desk · the “dining room” for the annotation API.</span>
+    <span>Drafts are sample data; verdicts are real. <a href="/docs">API docs →</a></span>
+  </footer>
+
+  <!-- toast + screen-reader live region -->
+  <div class="toasts" id="toasts" aria-hidden="true"></div>
+  <div class="visually-hidden" id="srLive" role="status" aria-live="polite"></div>
+
+  <!-- auth-expired modal -->
+  <div class="modal-overlay" id="authExpiredModal" hidden>
+    <div class="modal" role="alertdialog" aria-modal="true" aria-labelledby="expTitle" aria-describedby="expBody">
+      <h2 id="expTitle">Session expired</h2>
+      <p id="expBody">Your session ended (tokens expire after 60 minutes, or when the demo server restarts). Your in-progress verdict has been kept.</p>
+      <button type="button" class="btn btn-primary" id="reloginBtn">Sign in again</button>
+    </div>
+  </div>
+</body>
+</html>

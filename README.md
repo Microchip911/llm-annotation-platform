@@ -71,6 +71,7 @@ credible next steps toward a full platform.
 
 ## Features
 
+- 🖥️ **Reviewer UI** — a zero-dependency single-page console at `/ui` to work the loop live: grade a sample AI draft (score + label + notes) and watch it land in the real, attributed decision ledger. Keyboard-first, accessible, dark theme.
 - 🔐 **JWT authentication** — register, log in for a bearer token, hit protected routes. Passwords stored as bcrypt hashes, never plaintext.
 - 👤 **Role-based access** — `annotator` vs `admin`; annotators are scoped to their own data. The role is **not** client-settable: self-registration is always an annotator, and admins are provisioned out-of-band (DB seed / CLI).
 - 📝 **Annotation CRUD** — create, read, list (paginated + filterable), delete, with per-owner authorization.
@@ -129,11 +130,12 @@ app/
 ├── schemas.py        # Pydantic request/response contracts
 ├── security.py       # password hashing + JWT create/decode
 ├── dependencies.py   # get_current_user, role guards, typed Depends aliases
-└── routers/
-    ├── auth.py         # POST /auth/register, POST /auth/token, GET /auth/me
-    ├── annotations.py  # POST/GET/DELETE /annotations, GET /annotations (list)
-    └── reports.py      # GET /reports/summary
-tests/                 # conftest (isolated DB) + auth/annotation/report tests
+├── routers/
+│   ├── auth.py         # POST /auth/register, POST /auth/token, GET /auth/me
+│   ├── annotations.py  # POST/GET/DELETE /annotations, GET /annotations (list)
+│   └── reports.py      # GET /reports/summary
+└── static/ui/         # Reviewer UI — index.html + app.css + app.js, served at /ui
+tests/                 # conftest (isolated DB) + auth/annotation/report/ui tests
 ```
 
 See [REFACTORING.md](REFACTORING.md) for a detailed, senior-engineer walkthrough of how
@@ -162,8 +164,14 @@ Run the API:
 uvicorn app.main:app --reload
 ```
 
-Then open the interactive docs at **http://127.0.0.1:8000/docs** (Swagger UI — the
-"Authorize" button works: register, log in, paste the token, and try every endpoint).
+Then open:
+
+- the **Reviewer UI** at **http://127.0.0.1:8000/ui** (the site root redirects there) — a single-page console to work the loop live, and
+- the interactive **API docs** at **http://127.0.0.1:8000/docs** (Swagger UI — the "Authorize" button works: register, log in, paste the token, try every endpoint).
+
+[![The Reviewer Desk UI](docs/reviewer-desk.png)](docs/reviewer-desk.png)
+
+*The Reviewer Desk: grade a sample AI draft on the left; the real, attributed decision ledger and live summary update on the right. Drafts are client-side sample data; every verdict is a real API call.*
 
 Run the tests / linter:
 
@@ -203,6 +211,7 @@ dev-friendly; override anything sensitive in production. See [`.env.example`](.e
 | `GET` | `/annotations/{id}` | ✅ | Fetch one annotation you own. |
 | `DELETE` | `/annotations/{id}` | ✅ | Delete one annotation you own. |
 | `GET` | `/reports/summary` | ✅ | Aggregate stats scoped to you (all data for admins). |
+| `GET` | `/ui` | — | Reviewer UI (single-page console; `/` redirects here). |
 | `GET` | `/health` | — | Liveness probe. |
 
 ### Example session
