@@ -165,6 +165,37 @@
     }
   }
 
+  function randomId() {
+    try {
+      if (typeof crypto !== "undefined" && crypto.randomUUID) return crypto.randomUUID().slice(0, 12);
+    } catch (_e) { /* ignore */ }
+    return Math.random().toString(36).slice(2, 14);
+  }
+
+  // Frictionless demo: no password screen. We provision a throwaway guest
+  // annotator behind the scenes, so the real API, JWT auth, and per-user
+  // attribution all still work; the credentials are generated and never shown.
+  async function startGuestSession() {
+    const email = "guest-" + randomId() + "@example.com";
+    const password = "guest-" + randomId() + "-" + randomId();
+    try {
+      await api("/auth/register", { method: "POST", json: { email, password }, auth: false });
+      const form = new URLSearchParams();
+      form.set("username", email);
+      form.set("password", password);
+      const tok = await api("/auth/token", { method: "POST", form, auth: false });
+      setToken(tok.access_token);
+      user = await api("/auth/me");
+      enterDesk();
+    } catch (_e) {
+      // Never a dead end: reveal the manual sign-in gate as a fallback.
+      if ($("booting")) $("booting").hidden = true;
+      $("gate").hidden = false;
+      $("skipLink").setAttribute("href", "#gate");
+      showAuthError("Could not start a demo session automatically. Sign in or register to continue.");
+    }
+  }
+
   function signOut() {
     clearToken();
     user = null;
@@ -172,9 +203,8 @@
     setBackgroundInert(false);
     $("desk").hidden = true;
     $("identity").hidden = true;
-    $("gate").hidden = false;
-    $("skipLink").setAttribute("href", "#gate");
-    $("authPassword").value = "";
+    if ($("booting")) $("booting").hidden = false;
+    startGuestSession();   // stay passwordless: begin a fresh guest session
   }
 
   function setBackgroundInert(on) {
@@ -186,11 +216,16 @@
   }
 
   function authExpired() {
+    // A token can lapse after 60 minutes. Stay passwordless: silently start a
+    // fresh guest session and restore the in-progress verdict.
     clearToken();
-    resumingFromExpiry = true;      // keep the in-progress verdict for after re-login
-    setBackgroundInert(true);
-    $("authExpiredModal").hidden = false;
-    $("reloginBtn").focus();
+    resumingFromExpiry = true;
+    setBackgroundInert(false);
+    $("authExpiredModal").hidden = true;
+    $("desk").hidden = true;
+    $("identity").hidden = true;
+    if ($("booting")) $("booting").hidden = false;
+    startGuestSession();
   }
 
   // ============================================================
@@ -198,6 +233,7 @@
   // ============================================================
   function enterDesk() {
     setBackgroundInert(false);
+    if ($("booting")) $("booting").hidden = true;
     $("gate").hidden = true;
     $("authExpiredModal").hidden = true;
     $("desk").hidden = false;
@@ -607,8 +643,8 @@
         setBackgroundInert(false);
       }
     }
-    $("gate").hidden = false;
-    $("skipLink").setAttribute("href", "#gate");
+    // No stored session: open straight into a guest demo session (no password).
+    await startGuestSession();
   }
 
   document.addEventListener("DOMContentLoaded", boot);

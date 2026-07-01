@@ -114,6 +114,7 @@ kbd {
 .identity-email { font-size: 13px; color: var(--text-muted); }
 
 /* ---- layout ---- */
+.booting { min-height: 40vh; display: grid; place-items: center; color: var(--text-muted); font-size: 15px; }
 .gate { display: grid; place-items: center; padding: var(--s7) var(--s4); }
 .desk {
   display: grid; grid-template-columns: 62% 38%; gap: var(--s5);

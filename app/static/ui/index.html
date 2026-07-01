@@ -24,12 +24,14 @@
     <div class="identity" id="identity" hidden>
       <span class="identity-email" id="userEmail"></span>
       <span class="pill" id="userRole"></span>
-      <button type="button" class="btn btn-ghost" id="signOutBtn">Sign out</button>
+      <button type="button" class="btn btn-ghost" id="signOutBtn">New session</button>
     </div>
   </header>
 
+  <div id="booting" class="booting" role="status">Starting your guest demo session…</div>
+
   <!-- ============================ AUTH GATE ============================ -->
-  <main id="gate" class="gate" tabindex="-1">
+  <main id="gate" class="gate" tabindex="-1" hidden>
     <section class="authcard" aria-labelledby="authTitle">
       <h1 class="authcard-title" id="authTitle">Sign in to the desk</h1>
       <p class="authcard-lead">Review AI drafts and record accountable, attributed verdicts.</p>

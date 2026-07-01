@@ -71,7 +71,7 @@ credible next steps toward a full platform.
 
 ## Features
 
-- 🖥️ **Reviewer UI**: a zero-dependency single-page console at `/ui` to work the loop live: grade a sample AI draft (score + label + notes) and watch it land in the real, attributed decision ledger. Keyboard-first, accessible, dark theme.
+- 🖥️ **Reviewer UI**: a zero-dependency single-page console at `/ui` that opens straight into a guest demo session (no login needed), so you can work the loop live: grade a sample AI draft (score + label + notes) and watch it land in the real, attributed decision ledger. Keyboard-first, accessible, dark theme. (The backend still uses real JWT auth; the guest credentials are generated and never shown.)
 - 🔐 **JWT authentication**: register, log in for a bearer token, hit protected routes. Passwords stored as bcrypt hashes, never plaintext.
 - 👤 **Role-based access**: `annotator` vs `admin`; annotators are scoped to their own data. The role is **not** client-settable: self-registration is always an annotator, and admins are provisioned out-of-band (DB seed / CLI).
 - 📝 **Annotation CRUD**: create, read, list (paginated + filterable), delete, with per-owner authorization.
