@@ -9,6 +9,23 @@
 
 ---
 
+## 🧭 The bigger picture
+
+This ships as an API for scoring LLM outputs — but the engine underneath is more
+general: **an always-on checkpoint that runs an AI's proposal past an accountable
+human before any decision is committed, then records who decided, what, and why.**
+The same loop that scores LLM outputs for RLHF is, unchanged, a governance control
+plane for AI actions proposed into Jira / Slack / Salesforce, or a licensed-pharmacist
+sign-off in a hospital.
+
+> AI proposes → an authenticated human rules → the verdict is recorded, attributed, and reported.
+
+**→ Read the full story in [VISION.md](VISION.md)** — the algorithm-vs-AI rationale,
+the two-layer "Swiss-cheese" accountability model, and worked use cases in
+project/program/portfolio governance and healthcare.
+
+---
+
 ## Overview
 
 When a team trains, fine-tunes, or ships an LLM, they need a way to turn raw model
