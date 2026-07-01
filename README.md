@@ -173,6 +173,12 @@ Then open:
 
 *The Reviewer Desk: grade a sample AI draft on the left; the real, attributed decision ledger and live summary update on the right. Drafts are client-side sample data; every verdict is a real API call.*
 
+> **▶️ View the UI — run it, don't open the file.** The UI is served *by* the app and talks to the API, so it only works through the running server. From the project root:
+> ```bash
+> SECRET_KEY=dev-secret uvicorn app.main:app --reload
+> ```
+> then open **http://127.0.0.1:8000/ui** in your browser. (Opening `index.html` on its own just shows an inert page — there's no backend behind it.)
+
 Run the tests / linter:
 
 ```bash

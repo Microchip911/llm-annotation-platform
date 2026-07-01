@@ -12,7 +12,7 @@ from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, RedirectResponse
+from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
 
 from app import __version__, models  # noqa: F401  (import models so create_all sees them)
@@ -67,20 +67,24 @@ def health() -> dict[str, str]:
 
 
 # --- Reviewer UI (static single-page console, no build step) -----------------
-# Mounted AFTER the API routers so it can never shadow /auth, /annotations,
-# /reports, /docs, or /health. index.html references its assets by absolute
-# /ui/static/... paths, so there is no trailing-slash base-path pitfall.
 _UI_DIR = Path(__file__).parent / "static" / "ui"
-app.mount("/ui/static", StaticFiles(directory=_UI_DIR), name="ui-static")
-
-
-@app.get("/ui", include_in_schema=False)
-def reviewer_ui() -> FileResponse:
-    """Serve the single-page reviewer console."""
-    return FileResponse(_UI_DIR / "index.html")
 
 
 @app.get("/", include_in_schema=False)
 def root() -> RedirectResponse:
     """Redirect the site root to the reviewer UI."""
-    return RedirectResponse(url="/ui")
+    return RedirectResponse(url="/ui/")
+
+
+@app.get("/ui", include_in_schema=False)
+def ui_trailing_slash() -> RedirectResponse:
+    """Normalise /ui -> /ui/ so the page's relative asset URLs resolve."""
+    return RedirectResponse(url="/ui/")
+
+
+# Mounted LAST so it can never shadow /auth, /annotations, /reports, /docs, /health.
+# `html=True` serves index.html at /ui/ and its co-located assets at /ui/app.css and
+# /ui/app.js. index.html links those assets with RELATIVE paths, so the page renders
+# correctly both when served here and when the file is opened directly in an editor
+# preview — it never appears unstyled.
+app.mount("/ui", StaticFiles(directory=_UI_DIR, html=True), name="ui")
